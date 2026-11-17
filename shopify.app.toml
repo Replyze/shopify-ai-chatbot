@@ -1,0 +1,47 @@
+# Replyze chat for Shopify: the app's configuration, used by Shopify CLI.
+#
+#   shopify app config link   # once: creates or picks your app and fills client_id
+#   shopify app dev           # runs the service (shopify.web.toml) and previews the theme extension
+#   shopify app deploy        # releases this configuration and the theme app extension
+#
+# After `config link`, compare this file with git: the CLI may rewrite it with defaults.
+# Replace https://replyze-chat.example.com with where you run the service.
+
+client_id = ""
+name = "Replyze chat"
+application_url = "https://replyze-chat.example.com"
+# No admin page inside Shopify: settings live in the theme editor (the app embed) and in Replyze.
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+
+[access_scopes]
+# Only for the app proxy, which signs a signed-in customer's id for the chat.
+# Products, prices, pages and policies come from the Storefront API without a token,
+# so the app asks for no product, customer or order access.
+scopes = "write_app_proxy"
+
+[auth]
+redirect_urls = [ "https://replyze-chat.example.com/" ]
+
+[webhooks]
+api_version = "2026-10"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks"
+
+  # Privacy webhooks every App Store app must answer. This app stores no customer data.
+  [[webhooks.subscriptions]]
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+  uri = "/webhooks"
+
+[app_proxy]
+# https://<store>/apps/replyze-chat/identity → <application_url>/proxy/identity
+url = "/proxy"
+prefix = "apps"
+subpath = "replyze-chat"
+
+[pos]
+embedded = false

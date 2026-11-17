@@ -1,0 +1,245 @@
+{%- comment -%}
+  Replyze chat: an app embed that adds the Replyze widget to every page.
+  Turn it on or off in the theme editor (App embeds). Nothing is added to
+  the theme's files.
+
+  - The widget token is pasted below; the widget itself comes from
+    cdn.replyze.chat, so it always runs Replyze's current version.
+  - Anything left empty or on "Use Replyze setting" keeps what is set in
+    the Replyze dashboard.
+  - Visitor tracking (page views for the live visitors list) starts off and
+    follows the shopper's analytics consent from Shopify's Customer Privacy
+    API. The chat works either way.
+  - With "Identify signed-in customers" on, the block asks this app's server
+    (through the app proxy) for a signature of the customer's id, so the chat
+    knows who is writing. Guests chat anonymously.
+
+  Settings reach the script as HTML-escaped data attributes, never as
+  JavaScript, so no text typed into a setting can run as code.
+{%- endcomment -%}
+{%- assign replyze_token = block.settings.widget_token | strip -%}
+{%- assign replyze_prefix = replyze_token | slice: 0, 4 -%}
+{%- if replyze_token != blank and replyze_prefix == 'wgt_' -%}
+  <template id="replyze-shopify-embed"
+    data-token="{{ replyze_token | escape }}"
+    data-color="{{ block.settings.color | escape }}"
+    data-position="{% unless block.settings.position == 'replyze' %}{{ block.settings.position | escape }}{% endunless %}"
+    data-theme="{% unless block.settings.theme == 'replyze' %}{{ block.settings.theme | escape }}{% endunless %}"
+    data-bot-name="{{ block.settings.bot_name | escape }}"
+    data-bot-avatar="{% if block.settings.avatar != blank %}{{ block.settings.avatar | image_url: width: 160, height: 160, crop: 'center' | prepend: 'https:' | escape }}{% endif %}"
+    data-welcome-message="{{ block.settings.welcome_message | escape }}"
+    data-greeting-teaser="{% unless block.settings.greeting_teaser == 'replyze' %}{{ block.settings.greeting_teaser | escape }}{% endunless %}"
+    data-auto-open="{% unless block.settings.auto_open == 'replyze' %}{{ block.settings.auto_open | escape }}{% endunless %}"
+    {%- if block.settings.identify_customers %}
+    data-identify="true"
+    data-proxy-path="{{ block.settings.proxy_path | default: '/apps/replyze-chat' | escape }}"
+    {%- if customer %}
+    data-signed-in="true"
+    {%- if block.settings.share_contact_details %}
+    data-customer-name="{{ customer.name | escape }}"
+    data-customer-email="{{ customer.email | escape }}"
+    {%- endif %}
+    {%- endif %}
+    {%- endif %}></template>
+  <script>
+    (function () {
+      var el = document.getElementById('replyze-shopify-embed');
+      if (!el) return;
+      var d = el.dataset;
+
+      var look = {};
+      if (d.color) look.color = d.color;
+      if (d.position) look.position = d.position;
+      if (d.theme) look.theme = d.theme;
+      if (d.botName) look.bot_name = d.botName;
+      if (d.botAvatar) look.bot_avatar = d.botAvatar;
+      if (d.welcomeMessage) look.welcome_message = d.welcomeMessage;
+      if (d.greetingTeaser) look.show_greeting_teaser = d.greetingTeaser === 'on';
+      if (d.autoOpen && !isNaN(Number(d.autoOpen))) look.auto_open_delay = Number(d.autoOpen);
+
+      var existing = window.ReplyzeConfig || {};
+      window.ReplyzeConfig = Object.assign({}, existing, {
+        token: d.token,
+        // A page may point the widget at another Replyze server first (the local demo does).
+        apiUrl: existing.apiUrl || 'https://client.replyze.chat',
+        tracking: false,
+        overrides: look
+      });
+
+      // Calls made before widget.js has loaded wait in Replyze._queue; the widget runs them in order.
+      function replyze(method) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        var rz = window.Replyze;
+        if (rz && rz._initialized && typeof rz[method] === 'function') {
+          rz[method].apply(rz, args);
+        } else {
+          window.Replyze = rz || {};
+          window.Replyze._queue = window.Replyze._queue || [];
+          window.Replyze._queue.push([method].concat(args));
+        }
+      }
+
+      function applyConsent(allowed) {
+        var rz = window.Replyze;
+        if (rz && rz._initialized && typeof rz.setTracking === 'function') {
+          rz.setTracking(allowed);
+        } else {
+          window.ReplyzeConfig.tracking = allowed;
+        }
+      }
+      document.addEventListener('visitorConsentCollected', function (event) {
+        applyConsent(!!(event.detail && event.detail.analyticsAllowed));
+      });
+      if (window.Shopify && typeof window.Shopify.loadFeatures === 'function') {
+        window.Shopify.loadFeatures([{ name: 'consent-tracking-api', version: '0.2' }], function (error) {
+          if (error || !window.Shopify.customerPrivacy) return;
+          applyConsent(window.Shopify.customerPrivacy.analyticsProcessingAllowed());
+        });
+      }
+
+      if (d.identify !== 'true') return;
+      var SIGNED_IN_KEY = 'replyze_shopify_customer';
+      function remember(value) {
+        try {
+          if (value) window.localStorage.setItem(SIGNED_IN_KEY, value);
+          else window.localStorage.removeItem(SIGNED_IN_KEY);
+        } catch (e) { /* private mode: nothing to remember */ }
+      }
+      function remembered() {
+        try { return window.localStorage.getItem(SIGNED_IN_KEY); } catch (e) { return null; }
+      }
+
+      if (d.signedIn !== 'true') {
+        // Signed out since the last page: the chat lets that customer go.
+        if (remembered()) {
+          replyze('reset');
+          remember(null);
+        }
+        return;
+      }
+
+      fetch((d.proxyPath || '/apps/replyze-chat') + '/identity', {
+        credentials: 'same-origin',
+        headers: { Accept: 'application/json' }
+      })
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (who) {
+          if (!who || !who.signed_in || !who.user_id || !who.user_hash) return;
+          var person = { user_id: who.user_id, user_hash: who.user_hash };
+          if (d.customerName) person.name = d.customerName;
+          if (d.customerEmail) person.email = d.customerEmail;
+          replyze('identify', person);
+          remember(who.user_id);
+        })
+        .catch(function () { /* the chat still works, as a guest */ });
+    })();
+  </script>
+  <script src="https://cdn.replyze.chat/widget.js" async></script>
+{%- elsif request.design_mode -%}
+  <div style="position:fixed;right:16px;bottom:16px;z-index:2147483000;max-width:280px;padding:12px 14px;border-radius:10px;background:#111827;color:#fff;font:14px/1.4 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.25)">
+    <b>Replyze chat</b><br>
+    Paste your widget token (it starts with wgt_) in this app embed's settings to show the chat.
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Replyze chat",
+  "target": "body",
+  "settings": [
+    { "type": "header", "content": "Connect" },
+    {
+      "type": "text",
+      "id": "widget_token",
+      "label": "Widget token",
+      "placeholder": "wgt_...",
+      "info": "In Replyze: Settings → Integrations → Install widget. Add this store's domain under Settings → Chat Widget → Allowed domains."
+    },
+    {
+      "type": "paragraph",
+      "content": "Anything left empty or on \"Use Replyze setting\" keeps what is set in Replyze."
+    },
+    { "type": "header", "content": "Look" },
+    { "type": "color", "id": "color", "label": "Chat color" },
+    {
+      "type": "select",
+      "id": "position",
+      "label": "Position",
+      "options": [
+        { "value": "replyze", "label": "Use Replyze setting" },
+        { "value": "bottom_right", "label": "Bottom right" },
+        { "value": "bottom_left", "label": "Bottom left" }
+      ],
+      "default": "replyze"
+    },
+    {
+      "type": "select",
+      "id": "theme",
+      "label": "Theme",
+      "options": [
+        { "value": "replyze", "label": "Use Replyze setting" },
+        { "value": "light", "label": "Light" },
+        { "value": "dark", "label": "Dark" }
+      ],
+      "default": "replyze"
+    },
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "bot_name", "label": "Assistant name", "placeholder": "Store assistant" },
+    {
+      "type": "image_picker",
+      "id": "avatar",
+      "label": "Assistant photo",
+      "info": "A square picture or your logo, shown in the chat header and next to the assistant's replies."
+    },
+    { "type": "textarea", "id": "welcome_message", "label": "Welcome message", "placeholder": "Hi! How can we help?" },
+    { "type": "header", "content": "Behavior" },
+    {
+      "type": "select",
+      "id": "greeting_teaser",
+      "label": "Show the welcome message next to the chat button",
+      "options": [
+        { "value": "replyze", "label": "Use Replyze setting" },
+        { "value": "on", "label": "Yes" },
+        { "value": "off", "label": "No" }
+      ],
+      "default": "replyze"
+    },
+    {
+      "type": "select",
+      "id": "auto_open",
+      "label": "Open the chat by itself",
+      "options": [
+        { "value": "replyze", "label": "Use Replyze setting" },
+        { "value": "0", "label": "Never" },
+        { "value": "5", "label": "After 5 seconds" },
+        { "value": "15", "label": "After 15 seconds" },
+        { "value": "30", "label": "After 30 seconds" },
+        { "value": "60", "label": "After 1 minute" }
+      ],
+      "default": "replyze"
+    },
+    { "type": "header", "content": "Signed-in customers" },
+    {
+      "type": "checkbox",
+      "id": "identify_customers",
+      "label": "Identify signed-in customers",
+      "default": false,
+      "info": "Needs this app's server with the app proxy and Replyze identity verification. The chat then knows which customer is writing; guests stay anonymous."
+    },
+    {
+      "type": "checkbox",
+      "id": "share_contact_details",
+      "label": "Also send their name and email to the chat",
+      "default": false,
+      "info": "Off: only Shopify's customer id reaches Replyze."
+    },
+    {
+      "type": "text",
+      "id": "proxy_path",
+      "label": "App proxy path",
+      "default": "/apps/replyze-chat",
+      "info": "Change it only if you changed the app proxy in Shopify admin."
+    }
+  ]
+}
+{% endschema %}

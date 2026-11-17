@@ -1,0 +1,8 @@
+# The service `shopify app dev` starts. It sets PORT, APP_URL (its tunnel),
+# SHOPIFY_API_KEY and SHOPIFY_API_SECRET; app/config.ts reads them.
+name = "replyze-chat-service"
+roles = ["frontend", "backend"]
+webhooks_path = "/webhooks"
+
+[commands]
+dev = "npm run dev"

@@ -1,0 +1,158 @@
+{
+  "_note": "A fictional store for the local demo. Every name, price, policy and address here is made up.",
+  "store": {
+    "name": "Harbor & Pine",
+    "tagline": "Clothing, home goods and small electronics, made to last.",
+    "email": "help@harborandpine.example",
+    "currency": "USD"
+  },
+  "policies": {
+    "shipping": {
+      "title": "Shipping",
+      "summary": "Standard shipping is $5.95 and free on orders over $75. Express shipping is $14.95. We ship to the US and Canada.",
+      "body": "Standard shipping (3 to 5 business days) costs $5.95 and is free on orders over $75. Express shipping (1 to 2 business days) costs $14.95. Orders placed before 1 pm Pacific time on a business day ship the same day. We ship to the United States and Canada."
+    },
+    "delivery": {
+      "title": "Delivery times",
+      "summary": "Standard delivery takes 3 to 5 business days, express 1 to 2 business days. Orders before 1 pm Pacific time on a business day ship the same day.",
+      "body": "After an order ships, standard delivery takes 3 to 5 business days and express delivery 1 to 2 business days. Canada adds 2 to 4 business days. You get a tracking link by email when the order ships."
+    },
+    "returns": {
+      "title": "Returns and refunds",
+      "summary": "You can return unused items within 30 days of delivery. Returns in the US are free with our prepaid label; refunds reach your card within 5 business days after we receive the item.",
+      "body": "Return unused items in their original packaging within 30 days of delivery. US returns are free with the prepaid label from our returns page; Canadian returns cost $8.95. Refunds go back to the original payment method within 5 business days of the item reaching us. Final-sale items and opened candles can't be returned."
+    },
+    "contact": {
+      "title": "Contact",
+      "summary": "Write to help@harborandpine.example or use this chat. The team answers within one business day.",
+      "body": "Email help@harborandpine.example or start a chat on any page. The team answers within one business day."
+    },
+    "hours": {
+      "title": "Business hours",
+      "summary": "The support team works Monday to Friday, 9 am to 5 pm Pacific time.",
+      "body": "Monday to Friday, 9 am to 5 pm Pacific time, closed on US public holidays. Messages sent outside these hours are answered the next business day."
+    }
+  },
+  "products": [
+    {
+      "handle": "linen-overshirt",
+      "title": "Linen Overshirt",
+      "category": "Fashion",
+      "price": 68,
+      "currency": "USD",
+      "available": true,
+      "description": "A relaxed overshirt in washed European linen with two chest pockets and corozo buttons. Breathable for summer, layers over a tee in spring.",
+      "keywords": ["shirt", "linen", "overshirt", "top", "summer", "clothing"]
+    },
+    {
+      "handle": "merino-crew-sweater",
+      "title": "Merino Crew Sweater",
+      "category": "Fashion",
+      "price": 96,
+      "currency": "USD",
+      "available": true,
+      "description": "Fine-gauge merino wool crewneck that keeps warm without bulk. Machine washable on the wool cycle.",
+      "keywords": ["sweater", "jumper", "merino", "wool", "knit", "winter", "clothing"]
+    },
+    {
+      "handle": "canvas-weekender-bag",
+      "title": "Canvas Weekender Bag",
+      "category": "Fashion",
+      "price": 120,
+      "currency": "USD",
+      "available": false,
+      "description": "Waxed canvas holdall with leather handles and a padded laptop sleeve. Fits carry-on limits for most airlines.",
+      "keywords": ["bag", "weekender", "duffel", "travel", "canvas", "luggage"]
+    },
+    {
+      "handle": "everyday-leather-belt",
+      "title": "Everyday Leather Belt",
+      "category": "Fashion",
+      "price": 45,
+      "currency": "USD",
+      "available": true,
+      "description": "Full-grain vegetable-tanned leather belt with a solid brass buckle. Sizes 28 to 42.",
+      "keywords": ["belt", "leather", "accessory", "accessories"]
+    },
+    {
+      "handle": "stoneware-mug-set",
+      "title": "Stoneware Mug Set (4)",
+      "category": "Home",
+      "price": 38,
+      "currency": "USD",
+      "available": true,
+      "description": "Four 12 oz reactive-glaze stoneware mugs. Dishwasher and microwave safe.",
+      "keywords": ["mug", "mugs", "cup", "coffee", "stoneware", "kitchen", "tea"]
+    },
+    {
+      "handle": "washed-linen-duvet-cover",
+      "title": "Washed Linen Duvet Cover",
+      "category": "Home",
+      "price": 149,
+      "currency": "USD",
+      "available": true,
+      "description": "Stone-washed linen duvet cover with coconut-shell buttons. Queen and king sizes, gets softer with every wash.",
+      "keywords": ["duvet", "bedding", "linen", "bed", "cover", "sheets", "bedroom"]
+    },
+    {
+      "handle": "oak-serving-board",
+      "title": "Oak Serving Board",
+      "category": "Home",
+      "price": 54,
+      "currency": "USD",
+      "available": false,
+      "description": "Solid white oak board for cheese and bread, finished with food-safe oil. 18 by 8 inches.",
+      "keywords": ["board", "oak", "serving", "cheese", "kitchen", "wood", "cutting"]
+    },
+    {
+      "handle": "cedar-soy-candle",
+      "title": "Cedar Soy Candle",
+      "category": "Home",
+      "price": 24,
+      "currency": "USD",
+      "available": true,
+      "description": "Hand-poured soy wax candle with cedarwood and vetiver. About 45 hours of burn time.",
+      "keywords": ["candle", "cedar", "soy", "scent", "home", "fragrance"]
+    },
+    {
+      "handle": "wireless-earbuds-pro",
+      "title": "Wireless Earbuds Pro",
+      "category": "Electronics",
+      "price": 129,
+      "currency": "USD",
+      "available": true,
+      "description": "Noise-cancelling earbuds with up to 8 hours of playback and 32 hours with the charging case. USB-C and wireless charging.",
+      "keywords": ["earbuds", "headphones", "earphones", "audio", "wireless", "bluetooth", "noise"]
+    },
+    {
+      "handle": "portable-bluetooth-speaker",
+      "title": "Portable Bluetooth Speaker",
+      "category": "Electronics",
+      "price": 89,
+      "currency": "USD",
+      "available": true,
+      "description": "Water-resistant speaker (IP67) with 12 hours of playback and a fabric strap. Pairs two speakers for stereo.",
+      "keywords": ["speaker", "bluetooth", "audio", "music", "portable", "waterproof"]
+    },
+    {
+      "handle": "usb-c-charger-65w",
+      "title": "65W USB-C Charger",
+      "category": "Electronics",
+      "price": 39,
+      "currency": "USD",
+      "available": true,
+      "description": "Compact GaN charger with two USB-C ports and one USB-A port. Charges a laptop and a phone at once.",
+      "keywords": ["charger", "usb", "usb-c", "power", "adapter", "laptop", "phone"]
+    },
+    {
+      "handle": "smart-led-desk-lamp",
+      "title": "Smart LED Desk Lamp",
+      "category": "Electronics",
+      "price": 75,
+      "currency": "USD",
+      "available": false,
+      "description": "Dimmable LED desk lamp with adjustable color temperature, a USB-C port and an app-free touch control.",
+      "keywords": ["lamp", "light", "desk", "led", "lighting", "office"]
+    }
+  ]
+}

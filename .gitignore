@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.local
+.replyze-sync.json
+test-results/
+playwright-report/
+coverage/
+.shopify/
+*.tsbuildinfo
+.DS_Store

@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Types, unit tests, theme check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run check:extension
+
+  e2e:
+    # The demo store in Chromium with the real widget.js from cdn.replyze.chat;
+    # only the Replyze API is a local, scripted stand-in. No credentials.
+    name: Demo with the real widget
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
+
+  docker:
+    name: Docker image starts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -t shopify-ai-chatbot .
+      - run: |
+          docker run -d --name svc -p 3000:3000 -e DEMO_MODE=true -e LOOKUP_API_KEY=ci-lookup-key-0000000000000000000000 shopify-ai-chatbot
+          for i in $(seq 1 20); do curl -fsS http://localhost:3000/health && break; sleep 1; done
+          curl -fsS -H "Authorization: Bearer ci-lookup-key-0000000000000000000000" "http://localhost:3000/lookup/products?q=earbuds" | grep -q "Wireless Earbuds Pro"
+          docker logs svc
